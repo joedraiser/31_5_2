@@ -5,7 +5,6 @@
 
 class IGraph
 {
-
 public:
 
     virtual ~IGraph() {}
@@ -21,6 +20,8 @@ public:
     virtual void GetNextVertices(int vertex, std::vector<int> &vertices) const = 0;
 
     virtual void GetPrevVertices(int vertex, std::vector<int> &vertices) const = 0;
+
+    virtual int getMaxVertexNum() const = 0;
 
 };
 
@@ -38,7 +39,27 @@ public:
         graph=oth->graph;
     }
 
-    ListGraph(MatrixGraph* oth);
+    ListGraph(IGraph* oth)
+    {
+        int size=oth->VerticesCount();
+        std::vector<int> temp;
+
+        for(int i=oth->getMaxVertexNum();i>0;i--)
+        {
+            oth->GetNextVertices(i, temp);
+            while(!temp.empty())
+            {
+                this->AddEdge(i, *(temp.end()-1));
+                temp.pop_back();
+            }
+            oth->GetPrevVertices(i, temp);
+            while(!temp.empty())
+            {
+                this->AddEdge(*(temp.end()-1), i);
+                temp.pop_back();
+            }
+        }
+    }
 
     virtual void AddEdge(int from, int to)
     {
@@ -103,7 +124,7 @@ public:
         graph=oth->graph;
     }
 
-    MatrixGraph(ListGraph* oth)
+    MatrixGraph(IGraph* oth)
     {
         int size=oth->VerticesCount();
         std::vector<int> temp;
@@ -212,28 +233,6 @@ public:
     ~MatrixGraph() {};
 };
 
-ListGraph::ListGraph(MatrixGraph *oth)
-{
-    int size=oth->VerticesCount();
-    std::vector<int> temp;
-
-    for(int i=oth->getMaxVertexNum();i>0;i--)
-    {
-        oth->GetNextVertices(i, temp);
-        while(!temp.empty())
-        {
-            this->AddEdge(i, *(temp.end()-1));
-            temp.pop_back();
-        }
-        oth->GetPrevVertices(i, temp);
-        while(!temp.empty())
-        {
-            this->AddEdge(*(temp.end()-1), i);
-            temp.pop_back();
-        }
-    }
-}
-
 ListGraph& ListGraph::operator=(const MatrixGraph& oth)
 {
     graph.clear();
@@ -280,6 +279,7 @@ int main()
     std::vector<int> b;
 
     MG.AddEdge(1,2);
+    MG.AddEdge(1,11);
     MG.AddEdge(5,2);
     MG.AddEdge(8,2);
     MG.AddEdge(2,4);
